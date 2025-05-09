@@ -65,7 +65,8 @@ if __name__ == '__main__':
 
     fig = plt.figure(figsize=(8.0, 5.0))
     if args.plot_type=='3D':
-        ax = fig.gca(projection='3d')
+        #ax = fig.gca(projection='3d')
+        ax = fig.add_subplot(111, projection='3d')
     else:
         ax = fig.gca()
 
@@ -120,5 +121,7 @@ if __name__ == '__main__':
         plt.ylabel("error")
 
     plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top)
-    plt.legend(frameon=True)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    if any(labels):
+        plt.legend(frameon=True)
     plt.show()
