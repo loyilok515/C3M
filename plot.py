@@ -42,6 +42,7 @@ parser.add_argument('--plot_dims', nargs='+', type=int, default=[0,1])
 parser.add_argument('--nTraj', type=int, default=10)
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--sigma', type=float, default=0.)
+parser.add_argument('--save_path', type=str, default=None, help="Path to save the plot image")
 args = parser.parse_args()
 
 np.random.seed(args.seed)
@@ -124,4 +125,7 @@ if __name__ == '__main__':
     handles, labels = plt.gca().get_legend_handles_labels()
     if any(labels):
         plt.legend(frameon=True)
-    plt.show()
+    if args.save_path is not None:
+        plt.savefig(args.save_path, dpi=300, bbox_inches='tight')
+    else:
+        plt.show()
