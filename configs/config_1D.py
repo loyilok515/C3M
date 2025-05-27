@@ -44,9 +44,9 @@ def system_reset(seed):
         for _t in t:
             u = np.array([0.]) # ref
             if _t < time_bound/2:
-                u += np.array(30)
+                u += np.array(3)
             else:
-                u += np.array(-30)
+                u += np.array(-3)
             #for freq, weight in zip(freqs, weights):
             #    u += np.array([weight[0] * np.sin(freq * _t/time_bound * 2*np.pi), 0])
             # u += 0.01*np.random.randn(2)
