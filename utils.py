@@ -24,7 +24,7 @@ def EulerIntegrate(controller, f, B, xstar, ustar, xinit, t_max = 10, dt = 0.05,
             xe = xcurr - xstar[i]
         ui = controller(xcurr, xe, ustar[i]) if with_tracking else ustar[i]
         if with_tracking:
-            # print(xcurr.reshape(-1), xstar[i].reshape(-1), ui.reshape(-1))
+            #  print(xcurr.reshape(-1), xstar[i].reshape(-1), ui.reshape(-1))
             pass
 
         if not noise_bound:

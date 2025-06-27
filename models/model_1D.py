@@ -28,6 +28,10 @@ class U_FUNC(nn.Module):
         w1_xe = self.model_u_w1(torch.cat([x,xe],dim=1).squeeze(-1)).reshape(bs, self.num_dim_control, -1)
         w1_x0 = self.model_u_w1(torch.cat([x,torch.zeros(xe.shape).type(xe.type())],dim=1).squeeze(-1)).reshape(bs, self.num_dim_control, -1)
         u = w1_xe - w1_x0 + uref
+        
+        # w1 = self.model_u_w1(torch.cat([x[:,effective_dim_start:effective_dim_end,:],(x-xe)[:,effective_dim_start:effective_dim_end,:]],dim=1).squeeze(-1)).reshape(bs, -1, self.num_dim_x)
+        # w2 = self.model_u_w2(torch.cat([x[:,effective_dim_start:effective_dim_end,:],(x-xe)[:,effective_dim_start:effective_dim_end,:]],dim=1).squeeze(-1)).reshape(bs, self.num_dim_control, -1)
+        # u = w2.matmul(torch.tanh(w1.matmul(xe))) + uref
         return u
 
 def get_model(num_dim_x, num_dim_control, w_lb, use_cuda = False):

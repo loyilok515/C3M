@@ -6,22 +6,23 @@ from utils import temp_seed
 v_l = -2.
 v_h = 2.
 
-X_MIN = np.array([-5., v_l]).reshape(-1,1)
-X_MAX = np.array([5., v_h]).reshape(-1,1)
 
-lim = 1.
-XE_MIN = np.array([-lim, -lim]).reshape(-1,1)
-XE_MAX = np.array([lim, lim]).reshape(-1,1)
+X_MIN = np.array([-50., v_l]).reshape(-1,1)
+X_MAX = np.array([50., v_h]).reshape(-1,1)
 
-UREF_MIN = np.array([-3.]).reshape(-1,1)
-UREF_MAX = np.array([ 3.]).reshape(-1,1)
+lim = 1.  # Larger than the initial error for better performance
+XE_MIN = np.array([-25, -lim]).reshape(-1,1)
+XE_MAX = np.array([25, lim]).reshape(-1,1)
+
+UREF_MIN = np.array([-1.]).reshape(-1,1)
+UREF_MAX = np.array([ 1.]).reshape(-1,1)
 
 # for sampling ref
-X_INIT_MIN = np.array([-2., -1.5])
-X_INIT_MAX = np.array([ 2., 1.5])
+X_INIT_MIN = np.array([0., 0.])
+X_INIT_MAX = np.array([0., 0.])
 
-XE_INIT_MIN = np.array([-1.,]*2)
-XE_INIT_MAX = np.array([ 1.,]*2)
+XE_INIT_MIN = np.array([-10, -1.])
+XE_INIT_MAX = np.array([ 10, 1.])
 
 time_bound = 6.
 time_step = 0.03
@@ -43,10 +44,6 @@ def system_reset(seed):
         uref = []
         for _t in t:
             u = np.array([0.]) # ref
-            if _t < time_bound/2:
-                u += np.array(3)
-            else:
-                u += np.array(-3)
             #for freq, weight in zip(freqs, weights):
             #    u += np.array([weight[0] * np.sin(freq * _t/time_bound * 2*np.pi), 0])
             # u += 0.01*np.random.randn(2)

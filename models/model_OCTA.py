@@ -3,8 +3,10 @@ from torch import nn
 from torch.autograd import grad
 import numpy as np
 
-effective_dim_start = 4
+# States that are used in the model
+effective_dim_start = 3
 effective_dim_end = 12
+
 
 class U_FUNC(nn.Module):
     """docstring for U_FUNC."""
@@ -27,7 +29,8 @@ class U_FUNC(nn.Module):
 
         return u
 
-def get_model(num_dim_x, num_dim_control, w_lb, use_cuda = False):
+
+def get_model(num_dim_x, num_dim_control, w_lb, use_cuda=False):
     dim = effective_dim_end - effective_dim_start
     model_Wbot = torch.nn.Sequential(
         torch.nn.Linear(dim-num_dim_control, 128, bias=True),
@@ -61,14 +64,17 @@ def get_model(num_dim_x, num_dim_control, w_lb, use_cuda = False):
         x = x.squeeze(-1)
 
         W = model_W(x[:, effective_dim_start:effective_dim_end]).view(bs, num_dim_x, num_dim_x)
+        
+        # Assuming the B(x) is structured as follows:
+        # B(x) = [0, b(x)], where b(x) is invertible
         Wbot = model_Wbot(x[:, effective_dim_start:effective_dim_end-num_dim_control]).view(bs, num_dim_x-num_dim_control, num_dim_x-num_dim_control)
         W[:, 0:num_dim_x-num_dim_control, 0:num_dim_x-num_dim_control] = Wbot
         W[:, num_dim_x-num_dim_control::, 0:num_dim_x-num_dim_control] = 0
 
         W = W.transpose(1,2).matmul(W)
         W = W + w_lb * torch.eye(num_dim_x).view(1, num_dim_x, num_dim_x).type(x.type())
+        
         return W
-
 
     u_func = U_FUNC(model_u_w1, model_u_w2, num_dim_x, num_dim_control)
 

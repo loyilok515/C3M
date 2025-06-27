@@ -1,7 +1,10 @@
+# python3 model_verification.py --task OCTA --plot_type 3D --plot_dims 0 1 2 --save_path results/OCTA_open.png
+
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from np2pth import get_system_wrapper, get_controller_wrapper
+import torch
+from np2pth import get_system_wrapper
 
 import importlib
 from utils import EulerIntegrate
@@ -45,11 +48,8 @@ parser.add_argument('--sigma', type=float, default=0.)
 parser.add_argument('--save_path', type=str, default=None, help="Path to save the plot image")
 args = parser.parse_args()
 
-np.random.seed(args.seed)
-
 system = importlib.import_module('system_'+args.task)
 f, B, _, num_dim_x, num_dim_control = get_system_wrapper(system)
-controller = get_controller_wrapper(args.pretrained + '/controller_best.pth.tar')
 
 if __name__ == '__main__':
     config = importlib.import_module('config_'+args.task)
@@ -63,8 +63,7 @@ if __name__ == '__main__':
     ustar = [u.reshape(-1,1) for u in ustar]
     xstar_0 = xstar_0.reshape(-1,1)
     xstar, _ = EulerIntegrate(None, f, B, None, ustar, xstar_0, time_bound, time_step, with_tracking=False)
-
-
+    
     fig = plt.figure(figsize=(8.0, 5.0))
     if args.plot_type=='3D':
         #ax = fig.gca(projection='3d')
@@ -75,36 +74,7 @@ if __name__ == '__main__':
     if args.plot_type == 'time':
         cmap = plt.get_cmap('plasma')
         colors = [cmap(i) for i in np.linspace(0, 1, len(args.plot_dims))]
-
-    x_closed = []
-    controls = []
-    errors = []
-    xinits = []
-    for _ in range(args.nTraj):
-        xe_0 = XE_INIT_MIN + np.random.rand(len(XE_INIT_MIN)) * (XE_INIT_MAX - XE_INIT_MIN)
-        xinit = xstar_0 + xe_0.reshape(-1,1)
-        xinits.append(xinit)
-        x, u = EulerIntegrate(controller, f, B, xstar,ustar,xinit,time_bound,time_step,with_tracking=True,sigma=args.sigma)
-        x_closed.append(x)
-        controls.append(u)
-
-    for n_traj in range(args.nTraj):
-        initial_dist = np.sqrt(((x_closed[n_traj][0] - xstar[0])**2).sum())
-        errors.append([np.sqrt(((x-xs)**2).sum()) / initial_dist for x, xs in zip(x_closed[n_traj][:-1], xstar)])
-
-        if args.plot_type=='2D':
-            plt.plot([x[args.plot_dims[0],0] for x in x_closed[n_traj]], [x[args.plot_dims[1],0] for x in x_closed[n_traj]], 'g', label='closed-loop traj' if n_traj==0 else None)
-        elif args.plot_type=='3D':
-            plt.plot([x[args.plot_dims[0],0] for x in x_closed[n_traj]], [x[args.plot_dims[1],0] for x in x_closed[n_traj]], [x[args.plot_dims[2],0] for x in x_closed[n_traj]], 'g', label='closed-loop traj' if n_traj==0 else None)
-        elif args.plot_type=='time':
-            for i, plot_dim in enumerate(args.plot_dims):
-                plt.plot(t, [x[plot_dim,0] for x in x_closed[n_traj]][:-1], color=colors[i])
-        elif args.plot_type=='error':
-            plt.plot(t, [np.sqrt(((x-xs)**2).sum()) for x, xs in zip(x_closed[n_traj][:-1], xstar)], 'g')
-        elif args.plot_type=='control':
-            for i in range(len(controls[n_traj][0])):  # for each control dimension
-                plt.plot(t, [u[i,0] for u in controls[n_traj]], label=f'u[{i}]' if n_traj==0 else None)
-
+    
     if args.plot_type=='2D':
         plt.plot([x[args.plot_dims[0],0] for x in xstar], [x[args.plot_dims[1],0] for x in xstar], 'k', label='Reference')
         plt.plot(xstar_0[args.plot_dims[0]], xstar_0[args.plot_dims[1]], 'ro', markersize=3.)
@@ -121,13 +91,7 @@ if __name__ == '__main__':
             plt.plot(t, [x[plot_dim,0] for x in xstar][:-1], 'k')
         plt.xlabel("t")
         plt.ylabel("x")
-    elif args.plot_type=='error':
-        plt.xlabel("t")
-        plt.ylabel("error")
-    elif args.plot_type=='control':
-        plt.xlabel("t")
-        plt.ylabel("u")
-    
+
     plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top)
     handles, labels = plt.gca().get_legend_handles_labels()
     if any(labels):
@@ -136,10 +100,3 @@ if __name__ == '__main__':
         plt.savefig(args.save_path, dpi=300, bbox_inches='tight')
     else:
         plt.show()
-
-    #  Save the best path into log_OCTA
-    x_closed = np.array(x_closed)
-    xstar = np.array(xstar)
-    ustar = np.array(ustar)
-    filepath = args.pretrained + '/best_path.npz'
-    np.savez(filepath, x_closed=x_closed, xstar=xstar, ustar=ustar)

@@ -31,6 +31,7 @@ parser.add_argument('--lambda', type=float, dest='_lambda', default=0.5, help='C
 parser.add_argument('--w_ub', type=float, default=10, help='Upper bound of the eigenvalue of the dual metric.')
 parser.add_argument('--w_lb', type=float, default=0.1, help='Lower bound of the eigenvalue of the dual metric.')
 parser.add_argument('--log', type=str, help='Path to a directory for storing the log.')
+parser.add_argument('--resume', type=str, default=None, help='Path to checkpoint to resume from.')
 
 args = parser.parse_args()
 
@@ -198,13 +199,17 @@ def forward(x, xref, uref, _lambda, verbose=False, acc=False, detach=False):
     loss += loss_pos_matrix_random_sampling(-C1_LHS_1 - epsilon * torch.eye(C1_LHS_1.shape[-1]).unsqueeze(0).type(x.type()))
     loss += loss_pos_matrix_random_sampling(args.w_ub * torch.eye(W.shape[-1]).unsqueeze(0).type(x.type()) - W)
     loss += 1. * sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s])
+    
+    # Add a penalty for control inputs larger than 3
+    control_penalty = torch.relu(u.abs() - 3).pow(2).sum(dim=1).mean()
+    loss += 1. * control_penalty
 
     if verbose:
         print(torch.symeig(Contraction)[0].min(dim=1)[0].mean(), torch.symeig(Contraction)[0].max(dim=1)[0].mean(), torch.symeig(Contraction)[0].mean())
     if acc:
-        return loss, ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy(), ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy(), sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s]).item()
+        return loss, ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy(), ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy(), sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s]).item(), control_penalty.item()
     else:
-        return loss, None, None, None
+        return loss, None, None, None, None
 
 optimizer = torch.optim.Adam(list(model_W.parameters()) + list(model_Wbot.parameters()) + list(model_u_w1.parameters()) + list(model_u_w2.parameters()), lr=args.learning_rate)
 
@@ -220,6 +225,7 @@ def trainval(X, bs=args.bs, train=True, _lambda=args._lambda, acc=False, detach=
     total_p1 = 0
     total_p2 = 0
     total_l3 = 0
+    total_c4 = 0
 
     if train:
         _iter = tqdm(range(len(X) // bs))
@@ -243,21 +249,22 @@ def trainval(X, bs=args.bs, train=True, _lambda=args._lambda, acc=False, detach=
 
         start = time.time()
 
-        loss, p1, p2, l3 = forward(x, xref, uref, _lambda=_lambda, verbose=False if not train else False, acc=acc, detach=detach)
+        loss, p1, p2, l3, c4 = forward(x, xref, uref, _lambda=_lambda, verbose=False if not train else False, acc=acc, detach=detach)
 
         start = time.time()
         if train:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            # print('backwad(): %.3f s'%(time.time() - start))
+            # print('backward(): %.3f s'%(time.time() - start))
 
         total_loss += loss.item() * x.shape[0]
         if acc:
             total_p1 += p1.sum()
             total_p2 += p2.sum()
             total_l3 += l3 * x.shape[0]
-    return total_loss / len(X), total_p1 / len(X), total_p2 / len(X), total_l3/ len(X)
+            total_c4 += c4 * x.shape[0]
+    return total_loss / len(X), total_p1 / len(X), total_p2 / len(X), total_l3/ len(X), total_c4 / len(X)
 
 
 best_acc = 0
@@ -268,16 +275,40 @@ def adjust_learning_rate(optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-for epoch in range(args.epochs):
+
+start_epoch = 0
+if args.resume is not None:
+    print(f"Resuming from checkpoint: {args.resume}")
+    checkpoint = torch.load(args.resume, map_location='cpu')
+    model_W.load_state_dict(checkpoint['model_W'])
+    model_Wbot.load_state_dict(checkpoint['model_Wbot'])
+    model_u_w1.load_state_dict(checkpoint['model_u_w1'])
+    model_u_w2.load_state_dict(checkpoint['model_u_w2'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    start_epoch = checkpoint['epoch'] + 1
+    precs = checkpoint['precs']
+    print("Loaded model with loss/p1/p2/l3: ", precs)
+
+for epoch in range(start_epoch, args.epochs):
     adjust_learning_rate(optimizer, epoch)
-    loss, _, _, _ = trainval(X_tr, train=True, _lambda=args._lambda, acc=False, detach=True if epoch < args.lr_step else False)
+    loss, _, _, _, _ = trainval(X_tr, train=True, _lambda=args._lambda, acc=False, detach=True if epoch < args.lr_step else False)
     print("Training loss: ", loss)
-    loss, p1, p2, l3 = trainval(X_te, train=False, _lambda=0., acc=True, detach=False)
-    print("Epoch %d: Testing loss/p1/p2/l3: "%epoch, loss, p1, p2, l3)
+    loss, p1, p2, l3, c4 = trainval(X_te, train=False, _lambda=0., acc=True, detach=False)
+    print("Epoch %d: Testing loss/p1/p2/l3/c4: "%epoch, loss, p1, p2, l3, c4)  # Ideal: 0 (total loss), 1 (probability of contraction condition being satisfied), 1 (probability of C1 being satisfied), 0 (mean of C2), 0 (mean of control penalty)
 
     if p1+p2 >= best_acc:
         best_acc = p1 + p2
         filename = args.log+'/model_best.pth.tar'
         filename_controller = args.log+'/controller_best.pth.tar'
-        torch.save({'args':args, 'precs':(loss, p1, p2), 'model_W': model_W.state_dict(), 'model_Wbot': model_Wbot.state_dict(), 'model_u_w1': model_u_w1.state_dict(), 'model_u_w2': model_u_w2.state_dict()}, filename)
+        torch.save({
+            'args': args,
+            'precs': (loss, p1, p2, l3),
+            'model_W': model_W.state_dict(),
+            'model_Wbot': model_Wbot.state_dict(),
+            'model_u_w1': model_u_w1.state_dict(),
+            'model_u_w2': model_u_w2.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'epoch': epoch
+        }, filename)
         torch.save(u_func, filename_controller)
+        
