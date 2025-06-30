@@ -21,8 +21,8 @@ UREF_MAX = np.array([ 1.]).reshape(-1,1)
 X_INIT_MIN = np.array([0., 0.])
 X_INIT_MAX = np.array([0., 0.])
 
-XE_INIT_MIN = np.array([-10, -1.])
-XE_INIT_MAX = np.array([ 10, 1.])
+XE_INIT_MIN = np.array([-10, 0.])
+XE_INIT_MAX = np.array([ 10, 0.])
 
 time_bound = 6.
 time_step = 0.03

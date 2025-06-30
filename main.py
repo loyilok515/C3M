@@ -202,7 +202,7 @@ def forward(x, xref, uref, _lambda, verbose=False, acc=False, detach=False):
     
     # Add a penalty for control inputs larger than 3
     control_penalty = torch.relu(u.abs() - 3).pow(2).sum(dim=1).mean()
-    loss += 1. * control_penalty
+    # loss += 1. * control_penalty
 
     if verbose:
         print(torch.symeig(Contraction)[0].min(dim=1)[0].mean(), torch.symeig(Contraction)[0].max(dim=1)[0].mean(), torch.symeig(Contraction)[0].mean())
@@ -287,7 +287,7 @@ if args.resume is not None:
     optimizer.load_state_dict(checkpoint['optimizer'])
     start_epoch = checkpoint['epoch'] + 1
     precs = checkpoint['precs']
-    print("Loaded model with loss/p1/p2/l3: ", precs)
+    print("Loaded model with loss/p1/p2/l3/c4: ", precs)
 
 for epoch in range(start_epoch, args.epochs):
     adjust_learning_rate(optimizer, epoch)
@@ -302,7 +302,7 @@ for epoch in range(start_epoch, args.epochs):
         filename_controller = args.log+'/controller_best.pth.tar'
         torch.save({
             'args': args,
-            'precs': (loss, p1, p2, l3),
+            'precs': (loss, p1, p2, l3, c4),
             'model_W': model_W.state_dict(),
             'model_Wbot': model_Wbot.state_dict(),
             'model_u_w1': model_u_w1.state_dict(),

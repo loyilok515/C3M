@@ -50,7 +50,7 @@ model_path = args.pretrained + '/model_best.pth.tar'
 checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
 
 # Access the items
-loss, p1, p2, l3 = checkpoint['precs']
+loss, p1, p2, l3, c4 = checkpoint['precs']
 model_W_state = checkpoint['model_W']
 model_Wbot_state = checkpoint['model_Wbot']
 model_u_w1_state = checkpoint['model_u_w1']
