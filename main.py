@@ -43,6 +43,7 @@ os.system('cp -r systems/ '+args.log)
 epsilon = args._lambda * 0.1
 
 config = importlib.import_module('config_'+args.task)
+X_REF = config.X_REF # if have
 X_MIN = config.X_MIN
 X_MAX = config.X_MAX
 U_MIN = config.UREF_MIN
@@ -65,7 +66,8 @@ model_W, model_Wbot, model_u_w1, model_u_w2, W_func, u_func = get_model(num_dim_
 
 # constructing datasets
 def sample_xef():
-    return (X_MAX-X_MIN) * np.random.rand(num_dim_x, 1) + X_MIN
+    # return (X_MAX-X_MIN) * np.random.rand(num_dim_x, 1) + X_MIN
+    return X_REF
 
 def sample_x(xref):
     xe = (XE_MAX-XE_MIN) * np.random.rand(num_dim_x, 1) + XE_MIN
@@ -233,7 +235,7 @@ def trainval(X, bs=args.bs, train=True, _lambda=args._lambda, acc=False, detach=
         _iter = range(len(X) // bs)
     for b in _iter:
         start = time.time()
-        x = []; xref = []; uref = [];
+        x = []; xref = []; uref = []; 
         for id in indices[b*bs:(b+1)*bs]:
             if args.use_cuda:
                 x.append(torch.from_numpy(X[id][0]).float().cuda())
