@@ -4,7 +4,7 @@ from torch.autograd import grad
 import numpy as np
 
 # States that are used in the model
-effective_dim_start = 5
+effective_dim_start = 0
 effective_dim_end = 12
 
 

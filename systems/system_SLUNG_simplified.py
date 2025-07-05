@@ -14,11 +14,13 @@ def f_func(x):
     # x: bs x n x 1
     # f: bs x n x 1
     bs = x.shape[0]
-    r_p_x, r_p_y, r_q_x, r_q_y, r_q_z, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    # r_p_x, r_p_y, r_q_x, r_q_y, r_q_z, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
     
     f = torch.zeros(bs, num_dim_x, 1).type(x.type())
     vel = torch.stack([v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot], dim=1).unsqueeze(-1)  # (bs, 3, 1)
-    f[:, 0:6, 0] = vel.squeeze(-1)
+    vel_r = torch.stack([v_q_x, v_q_y, v_q_z, v_p_x, v_p_y, l_dot], dim=1).unsqueeze(-1)  # for state reversal
+    f[:, 0:6, 0] = vel_r.squeeze(-1)
     
     # Define v_p vector
     v_p = torch.stack([v_p_x, v_p_y], dim=1).unsqueeze(-1)  # (bs, 2, 1)
@@ -32,8 +34,7 @@ def f_func(x):
     
     # Define B matrix for slung payload
     I2 = torch.eye(2, device=x.device).repeat(bs, 1, 1) # shape (bs, 2, 2)
-    r_p_row = r_p.view(bs, 1, 2)
-    last_row = r_p_row/torch.sqrt(1-torch.bmm(r_p.transpose(1, 2), r_p))
+    last_row = r_p.transpose(1, 2)/torch.sqrt(1-torch.bmm(r_p.transpose(1, 2), r_p))
     B = torch.cat([I2, last_row], dim=1)
     
     # Define B_dot matrix for slung payload
@@ -105,7 +106,7 @@ def DfDx_func(x):
 
 def B_func(x):
     bs = x.shape[0]
-    r_p_x, r_p_y, r_q_x, r_q_y, r_q_z, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
     
     # Define v_p vector
     v_p = torch.stack([v_p_x, v_p_y], dim=1).unsqueeze(-1)  # (bs, 2, 1)

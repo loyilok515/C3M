@@ -4,8 +4,11 @@ from utils import temp_seed
 # for training
 X_REF = np.array([0., 0., 0., 0., 0., 2, 0, 0, 0, 0, 0, 0]).reshape(-1,1)
 
-X_MIN = np.array([-0.5, -0.5, -30., -30., -30., 1, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]).reshape(-1,1)
-X_MAX = np.array([0.5, 0.5, 30., 30., 30., 3, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]).reshape(-1,1)
+# X_MIN = np.array([-0.5, -0.5, -30., -30., -30., 1, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]).reshape(-1,1)
+# X_MAX = np.array([0.5, 0.5, 30., 30., 30., 3, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]).reshape(-1,1)
+
+X_MIN = np.array([-30., -30., -30., -0.5, -0.5, 1, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]).reshape(-1,1)  # For state reversal
+X_MAX = np.array([30., 30., 30., 0.5, 0.5, 3, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]).reshape(-1,1)  # For state reversal
 
 f_x_bound = 0.1
 f_y_bound = 0.1
@@ -16,15 +19,24 @@ UREF_MIN = np.array([-f_x_bound, -f_y_bound, -f_z_bound, -tau_bound]).reshape(-1
 UREF_MAX = np.array([f_x_bound, f_y_bound, f_z_bound, tau_bound]).reshape(-1,1)
 
 lim = 1
-XE_MIN = np.array([-lim/10, -lim/10, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim]).reshape(-1,1)
-XE_MAX = np.array([lim/10, lim/10, lim, lim, lim, lim, lim, lim, lim, lim, lim, lim]).reshape(-1,1)
+# XE_MIN = np.array([-lim/10, -lim/10, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim, -lim]).reshape(-1,1)
+# XE_MAX = np.array([lim/10, lim/10, lim, lim, lim, lim, lim, lim, lim, lim, lim, lim]).reshape(-1,1)
+
+XE_MIN = np.array([-lim, -lim, -lim, -lim/10, -lim/10, -lim, -lim, -lim, -lim, -lim, -lim, -lim]).reshape(-1,1)  # For state reversal
+XE_MAX = np.array([lim, lim, lim, lim/10, lim/10, lim, lim, lim, lim, lim, lim, lim]).reshape(-1,1)  # For state reversal
 
 # for sampling ref
-X_INIT_MIN = np.array([-0.3, -0.3, -0.5, -0.5, -0.5, 1.5, 0, 0, 0, 0, 0, 0])
-X_INIT_MAX = np.array([0.3, 0.3, 0.5, 0.5, 0.5, 1.5, 0, 0, 0, 0, 0, 0])
+# X_INIT_MIN = np.array([-0.2, -0.2, -0.5, -0.5, -0.5, 1.5, 0, 0, 0, 0, 0, 0])
+# X_INIT_MAX = np.array([0.2, 0.2, 0.5, 0.5, 0.5, 1.5, 0, 0, 0, 0, 0, 0])
 
-XE_INIT_MIN = np.array([-0.05, -0.05, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, 0])
-XE_INIT_MAX = np.array([0.05, 0.05, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0])
+X_INIT_MIN = np.array([-0.5, -0.5, -0.5, -0.2, -0.2, 1.5, 0, 0, 0, 0, 0, 0])  # For state reversal
+X_INIT_MAX = np.array([0.5, 0.5, 0.5, 0.2, 0.2, 1.5, 0, 0, 0, 0, 0, 0])  # For state reversal
+
+# XE_INIT_MIN = np.array([-0.05, -0.05, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, 0])
+# XE_INIT_MAX = np.array([0.05, 0.05, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0])
+
+XE_INIT_MIN = np.array([-0.2, -0.2, -0.2, -0.05, -0.05, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, 0])  # For state reversal
+XE_INIT_MAX = np.array([0.2, 0.2, 0.2, 0.05, 0.05, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0])  # For state reversal
 
 time_bound = 16.
 time_step = 0.03
