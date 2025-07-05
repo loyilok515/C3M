@@ -63,7 +63,6 @@ def f_func(x):
     # Compute the inverse of M
     # linalg.solve is more stable than torch.inverse
     # M_inv = torch.linalg.solve(M, torch.eye(6, device=x.device).
-    M_inv = torch.inverse(M)
     
     # Compute C matrix
     C = torch.zeros(bs, 6, 6).type(x.type())
@@ -95,9 +94,7 @@ def f_func(x):
     g_I = torch.tensor([0, 0, -g], device=x.device).view(1, 3, 1).expand(bs, 3, 1)  # (bs, 3, 1)
     F_g = torch.bmm(G, g_I)
     
-    torch.linalg.solve(M, F_g - torch.bmm(C, vel)).squeeze(-1)
-    
-    f[:, 6:12, 0] = torch.bmm(M_inv, (F_g - torch.bmm(C, vel))).squeeze(-1) # linalg.solve is more stable than torch.inverse
+    f[:, 6:12, 0] = torch.linalg.solve(M, F_g - torch.bmm(C, vel)).squeeze(-1).squeeze(-1) # linalg.solve is more stable than torch.inverse
     
     return f
 
@@ -142,9 +139,7 @@ def B_func(x):
         torch.cat([M21, M22, M23], dim=2),
         torch.cat([M31, M32, M33], dim=2)
     ], dim=1)
-
-    # Compute the inverse of M
-    M_inv = torch.inverse(M)    
+    
 
     H = torch.zeros(bs, 6, num_dim_control).type(x.type())
     H[:, 2, 0] = 1  # Thrust force in x direction of earth frame
@@ -152,8 +147,7 @@ def B_func(x):
     H[:, 4, 2] = 1  # Thrust force in z direction of earth frame
     H[:, 5, 3] = 1  # Extending torque
 
-    B = torch.cat([torch.zeros(bs, 6, num_dim_control).type(x.type()), torch.bmm(M_inv, H)], dim=1)
-    
+    B = torch.cat([torch.zeros(bs, 6, num_dim_control).type(x.type()), torch.linalg.solve(M, H)], dim=1)
     return B
 
 
