@@ -15,7 +15,7 @@ def f_func(x):
     # f: bs x n x 1
     bs = x.shape[0]
     # r_p_x, r_p_y, r_q_x, r_q_y, r_q_z, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
-    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]  # For state reversal
     
     f = torch.zeros(bs, num_dim_x, 1).type(x.type())
     vel = torch.stack([v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot], dim=1).unsqueeze(-1)  # (bs, 3, 1)
@@ -106,7 +106,8 @@ def DfDx_func(x):
 
 def B_func(x):
     bs = x.shape[0]
-    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    # r_p_x, r_p_y, r_q_x, r_q_y, r_q_z, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]
+    r_q_x, r_q_y, r_q_z, r_p_x, r_p_y, l, v_p_x, v_p_y, v_q_x, v_q_y, v_q_z, l_dot = [x[:,i,0] for i in range(num_dim_x)]  # For state reversal
     
     # Define v_p vector
     v_p = torch.stack([v_p_x, v_p_y], dim=1).unsqueeze(-1)  # (bs, 2, 1)

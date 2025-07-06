@@ -188,7 +188,7 @@ for testing_traj in range(n_traj):
     analyse_contraction = ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy()
     print(f"Contraction analysis: {analyse_contraction.mean()}")
     num_pos_eigen_contraction = ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1)).cpu().detach().numpy()
-    print(f"Number of positive eigenvalues in contraction: {num_pos_eigen_contraction}")
+    # print(f"Number of positive eigenvalues in contraction: {num_pos_eigen_contraction}")
 
     # C1_LHS_1: bs x (n-m) x (n-m)
     try:
@@ -199,7 +199,7 @@ for testing_traj in range(n_traj):
     analyse_C1 = ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy()
     print(f"C1 analysis: {analyse_C1.mean()}")
     num_pos_eigen_C1 = ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1)).cpu().detach().numpy()
-    print(f"Number of positive eigenvalues in C1: {num_pos_eigen_C1}")
+    # print(f"Number of positive eigenvalues in C1: {num_pos_eigen_C1}")
 
     # C2s: list of bs x (n-m) x (n-m)
     print(f"Sum of squared C2s: {sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s]).item()}")
