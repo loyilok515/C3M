@@ -21,9 +21,9 @@ parser.add_argument('--task', type=str,
                         default='CAR', help='Name of the model.')
 parser.add_argument('--no_cuda', dest='use_cuda', action='store_false', help='Disable cuda.')
 parser.set_defaults(use_cuda=True)
-parser.add_argument('--bs', type=int, default=1024, help='Batch size.')
-parser.add_argument('--num_train', type=int, default=131072, help='Number of samples for training.') # 4096 * 32
-parser.add_argument('--num_test', type=int, default=32768, help='Number of samples for testing.') # 1024 * 32
+parser.add_argument('--bs', type=int, default=1024*2, help='Batch size.')
+parser.add_argument('--num_train', type=int, default=131072*2, help='Number of samples for training.') # 4096 * 32
+parser.add_argument('--num_test', type=int, default=32768*2, help='Number of samples for testing.') # 1024 * 32
 parser.add_argument('--lr', dest='learning_rate', type=float, default=0.001, help='Base learning rate.')
 parser.add_argument('--epochs', type=int, default=15, help='Number of training epochs.')
 parser.add_argument('--lr_step', type=int, default=5, help='')
