@@ -137,8 +137,8 @@ def weighted_gradients(W, v, x, detach=False):
     else:
         return (Jacobian_Matrix(W, x) * v.view(bs, 1, 1, -1)).sum(dim=3)
 
-# K = 1024
-K = 4096  # For more states
+K = 1024
+# K = 4096  # For more states?
 def loss_pos_matrix_random_sampling(A):
     # A: bs x d x d
     # z: K x d
@@ -204,7 +204,7 @@ def forward(x, xref, uref, _lambda, verbose=False, acc=False, detach=False):
     loss += 1. * sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s])
     
     # Add a penalty for control inputs larger than 3
-    control_penalty = torch.relu(u.abs() - 3).sum(dim=1).mean()
+    control_penalty = torch.relu(u.abs() - 10).sum(dim=1).mean()
     # loss += 1. * control_penalty
 
     if verbose:
