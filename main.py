@@ -66,8 +66,8 @@ model_W, model_Wbot, model_u_w1, model_u_w2, W_func, u_func = get_model(num_dim_
 
 # constructing datasets
 def sample_xef():
-    # return (X_MAX-X_MIN) * np.random.rand(num_dim_x, 1) + X_MIN
-    return X_REF
+    return (X_MAX-X_MIN) * np.random.rand(num_dim_x, 1) + X_MIN
+    # return X_REF
 
 def sample_x(xref):
     xe = (XE_MAX-XE_MIN) * np.random.rand(num_dim_x, 1) + XE_MIN
@@ -171,7 +171,7 @@ def forward(x, xref, uref, _lambda, verbose=False, acc=False, detach=False):
     for i in range(num_dim_control):
         DBDx[:,:,:,i] = Jacobian(B[:,:,i].unsqueeze(-1), x)
 
-    _Bbot = Bbot_func(x)
+    _Bbot = Bbot_func(B)
     u = u_func(x, x - xref, uref) # u: bs x m x 1 # TODO: x - xref
     K = Jacobian(u, x)
 
