@@ -55,31 +55,31 @@ def get_model(num_dim_x, num_dim_control, w_lb, use_cuda=False):
     
     model_Wbot = torch.nn.Sequential(
         torch.nn.Linear(dim-num_dim_control, 256, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(256, 128, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(128, (num_dim_x-num_dim_control) ** 2, bias=False))
 
     model_W = torch.nn.Sequential(
         torch.nn.Linear(dim, 256, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(256, 128, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(128, num_dim_x * num_dim_x, bias=False))
 
     c = 3 * num_dim_x
     model_u_w1 = torch.nn.Sequential(
         torch.nn.Linear(2*dim, 256, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(256, 128, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(128, c*num_dim_x, bias=True))
 
     model_u_w2 = torch.nn.Sequential(
         torch.nn.Linear(2*dim, 256, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(256, 128, bias=True),
-        torch.nn.ReLU(),
+        torch.nn.Tanh(),
         torch.nn.Linear(128, num_dim_control*c, bias=True))
 
     if use_cuda:
