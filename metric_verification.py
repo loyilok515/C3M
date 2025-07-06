@@ -31,7 +31,7 @@ parser.add_argument('--log', type=str, help='Path to a directory for storing the
 args = parser.parse_args()
 
 
-effective_dim_start = 4
+effective_dim_start = 3
 effective_dim_end = 12
 system = importlib.import_module('system_'+args.task)
 f_func = system.f_func
@@ -150,7 +150,8 @@ for testing_traj in range(n_traj):
         for i in range(num_dim_control):
             DBDx[:,:,:,i] = Jacobian(B[:,:,i].unsqueeze(-1), x)
 
-        _Bbot = Bbot_func(x)  # Bbot: bs x n x (n-m)
+        _Bbot = Bbot_func(B)  # Bbot: bs x n x (n-m)
+        # _Bbot = Bbot_func(x)  # Bbot: bs x n x (n-m)  # For usual training
         u = u_func(x, x - xref, uref)  # u: bs x m x 1 # TODO: x - xref
         K = Jacobian(u, x)
 
@@ -188,7 +189,7 @@ for testing_traj in range(n_traj):
     analyse_contraction = ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy()
     print(f"Contraction analysis: {analyse_contraction.mean()}")
     num_pos_eigen_contraction = ((torch.linalg.eigvalsh(Contraction, UPLO='L') >= 0).sum(dim=1)).cpu().detach().numpy()
-    # print(f"Number of positive eigenvalues in contraction: {num_pos_eigen_contraction}")
+    print(f"Number of positive eigenvalues in contraction: {num_pos_eigen_contraction}")
 
     # C1_LHS_1: bs x (n-m) x (n-m)
     try:
@@ -199,7 +200,7 @@ for testing_traj in range(n_traj):
     analyse_C1 = ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1) == 0).cpu().detach().numpy()
     print(f"C1 analysis: {analyse_C1.mean()}")
     num_pos_eigen_C1 = ((torch.linalg.eigvalsh(C1_LHS_1, UPLO='L') >= 0).sum(dim=1)).cpu().detach().numpy()
-    # print(f"Number of positive eigenvalues in C1: {num_pos_eigen_C1}")
+    print(f"Number of positive eigenvalues in C1: {num_pos_eigen_C1}")
 
     # C2s: list of bs x (n-m) x (n-m)
     print(f"Sum of squared C2s: {sum([1.*(C2**2).reshape(bs,-1).sum(dim=1).mean() for C2 in C2s]).item()}")
